@@ -286,14 +286,6 @@
                     </button>
                 </div>
                 
-                <div class="border-t pt-3 md:pt-4 flex flex-col sm:flex-row gap-2">
-                    <button id="gemini-tactics-btn" class="flex-1 bg-indigo-600 text-white px-4 py-3 md:py-2.5 rounded-lg font-medium shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50">
-                        ✨ Tattiche
-                    </button>
-                    <button id="gemini-flavor-btn" class="flex-1 bg-purple-600 text-white px-4 py-3 md:py-2.5 rounded-lg font-medium shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50">
-                        ✨ Descrizione
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -424,8 +416,6 @@
         const geminiLoading = document.getElementById('gemini-loading');
         const geminiMainOutput = document.getElementById('gemini-main-output');
         const geminiModalOutput = document.getElementById('gemini-output');
-        const geminiTacticsBtn = document.getElementById('gemini-tactics-btn');
-        const geminiFlavorBtn = document.getElementById('gemini-flavor-btn');
         const ttsAudioPlayer = document.getElementById('tts-audio-player');
         const menuToggle = document.getElementById('menu-toggle');
         const closeSidebar = document.getElementById('close-sidebar');
@@ -1268,14 +1258,6 @@
             }, 3000);
         }
 
-        geminiTacticsBtn.addEventListener('click', () => {
-            showToast('Funzione Gemini non implementata');
-        });
-
-        geminiFlavorBtn.addEventListener('click', () => {
-            showToast('Funzione Gemini non implementata');
-        });
-
         clearDbBtn.addEventListener('click', async () => {
             if (!indexedDBAvailable) {
                 showToast('Salvataggio locale non disponibile');
@@ -1374,3 +1356,4 @@
     </script>
 </body>
 </html>
+
