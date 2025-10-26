@@ -198,10 +198,18 @@
                 </button>
             </div>
 
+            <!-- MODIFICA: Aggiunto filtro GS/CR -->
             <div class="mt-4 md:mt-6">
-                <label for="filter-input" class="block text-sm font-medium text-gray-700 mb-2">Filtra Mostri</label>
+                <label for="filter-input" class="block text-sm font-medium text-gray-700 mb-2">Filtra per Nome/Tipo</label>
                 <input type="text" id="filter-input" placeholder="Es. Goblin, Drago..." class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                
+                <label for="cr-filter-select" class="block text-sm font-medium text-gray-700 mb-2 mt-4">Filtra per GS (CR)</label>
+                <select id="cr-filter-select" class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
+                    <option value="">Qualsiasi GS</option>
+                    <!-- Le opzioni saranno popolate da JS -->
+                </select>
             </div>
+            <!-- FINE MODIFICA -->
 
             <div class="mt-4 md:mt-6 border border-blue-300 bg-blue-50 p-3 rounded-lg">
                 <h2 class="text-base md:text-lg font-semibold text-blue-800 mb-2">Selezione Attuale</h2>
@@ -389,6 +397,8 @@
         
         const uploader = document.getElementById('xml-uploader');
         const filterInput = document.getElementById('filter-input');
+        // MODIFICA: Aggiunto selettore per CR
+        const crFilterSelect = document.getElementById('cr-filter-select');
         const monsterGrid = document.getElementById('monster-grid');
         const loadingMessage = document.getElementById('loading-message');
         const folderInfoBar = document.getElementById('folder-info-bar');
@@ -726,6 +736,7 @@
             });
         }
 
+        // MODIFICA: Aggiunto ordinamento alfabetico
         function displayMonsters(monsters) {
             monsterGrid.innerHTML = '';
             if (monsters.length === 0) {
@@ -733,7 +744,10 @@
                 return;
             }
 
-            monsters.forEach(monster => {
+            // Ordina i mostri alfabeticamente per nome
+            const sortedMonsters = [...monsters].sort((a, b) => a.name.localeCompare(b.name, 'it', { sensitivity: 'base' }));
+
+            sortedMonsters.forEach(monster => {
                 const card = createMonsterCard(monster);
                 monsterGrid.appendChild(card);
             });
@@ -844,14 +858,28 @@
             if (e.target === modal) closeModal();
         });
 
-        filterInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filtered = allMonsters.filter(m => 
-                m.name.toLowerCase().includes(query) ||
-                m.type.toLowerCase().includes(query)
-            );
-            displayMonsters(filtered);
-        });
+        // MODIFICA: Logica di filtro unificata
+        function applyFilters() {
+            const nameQuery = filterInput.value.toLowerCase();
+            const crQuery = crFilterSelect.value;
+
+            const filtered = allMonsters.filter(m => {
+                const nameMatch = nameQuery === '' ||
+                                  m.name.toLowerCase().includes(nameQuery) ||
+                                  m.type.toLowerCase().includes(nameQuery);
+                
+                const crMatch = crQuery === '' || m.cr === crQuery;
+
+                return nameMatch && crMatch;
+            });
+
+            displayMonsters(filtered); // displayMonsters ora si occupa dell'ordinamento
+        }
+
+        // MODIFICA: Aggiornati i listener
+        filterInput.addEventListener('input', applyFilters);
+        crFilterSelect.addEventListener('change', applyFilters);
+        // FINE MODIFICA
 
         function loadFolders() {
             if (!userId) return;
@@ -1002,6 +1030,7 @@
             geminiMainOutput.classList.add('hidden');
         }
         
+        // MODIFICA: Aggiunto ordinamento alfabetico anche alla vista cartella
         function displayFolderMonsters(monsterCounts) {
             monsterGrid.innerHTML = '';
             
@@ -1010,7 +1039,10 @@
                 return;
             }
             
-            Object.entries(monsterCounts).forEach(([name, count]) => {
+            // Ordina le voci della cartella alfabeticamente per nome
+            const sortedEntries = Object.entries(monsterCounts).sort((a, b) => a[0].localeCompare(b[0], 'it', { sensitivity: 'base' }));
+
+            sortedEntries.forEach(([name, count]) => {
                 const monster = allMonsters.find(m => m.name === name);
                 if (!monster) return;
                 
@@ -1018,6 +1050,7 @@
                 monsterGrid.appendChild(card);
             });
         }
+        // FINE MODIFICA
         
         function createFolderMonsterCard(monster, count) {
             const card = document.createElement('div');
@@ -1267,9 +1300,24 @@
             }
         });
 
+        // MODIFICA: Nuova funzione per popolare il filtro GS/CR
+        function populateCrFilter() {
+            // Usiamo le chiavi di crXpMap che sono già in ordine
+            Object.keys(crXpMap).forEach(cr => {
+                const option = document.createElement('option');
+                option.value = cr;
+                option.textContent = cr;
+                crFilterSelect.appendChild(option);
+            });
+        }
+        // FINE MODIFICA
+
         // Inizializza app
         async function initApp() {
             console.log('Inizializzazione app...');
+            
+            // MODIFICA: Popola il filtro GS all'avvio
+            populateCrFilter();
             
             // Prova a inizializzare IndexedDB
             try {
@@ -1281,7 +1329,7 @@
                     const savedMonsters = await loadMonstersFromIndexedDB();
                     if (savedMonsters && savedMonsters.length > 0) {
                         allMonsters = savedMonsters;
-                        displayMonsters(allMonsters);
+                        displayMonsters(allMonsters); // displayMonsters ora ordina
                         loadingMessage.classList.add('hidden');
                         dbStatus.textContent = `✓ ${allMonsters.length} mostri caricati dal database locale`;
                         dbStatus.className = 'mt-2 text-xs text-green-600 font-medium';
