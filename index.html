@@ -1235,6 +1235,14 @@
             }, 3000);
         }
 
+        geminiTacticsBtn.addEventListener('click', () => {
+            showToast('Funzione Gemini non implementata');
+        });
+
+        geminiFlavorBtn.addEventListener('click', () => {
+            showToast('Funzione Gemini non implementata');
+        });
+
         clearDbBtn.addEventListener('click', async () => {
             if (!indexedDBAvailable) {
                 showToast('Salvataggio locale non disponibile');
