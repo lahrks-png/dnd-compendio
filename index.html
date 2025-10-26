@@ -85,32 +85,6 @@
             padding-bottom: 4px;
             margin-top: 12px;
         }
-        
-        #gemini-output, #gemini-main-output {
-            background: #fdfdfd;
-            border-left: 4px solid #4f46e5;
-            padding: 12px;
-            margin-top: 16px;
-            border-radius: 4px;
-        }
-        
-        #gemini-output h4, #gemini-main-output h4 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #4f46e5;
-        }
-        
-        #gemini-output p, #gemini-main-output p,
-        #gemini-output ul, #gemini-main-output ul,
-        #gemini-output li, #gemini-main-output li {
-            font-size: 0.95rem;
-            margin-top: 8px;
-        }
-        
-        #gemini-output ul, #gemini-main-output ul {
-            list-style-type: disc;
-            padding-left: 20px;
-        }
 
         #mobile-sidebar {
             transform: translateX(-100%);
@@ -247,8 +221,6 @@
                 <p class="text-base md:text-lg">Carica il file XML per iniziare</p>
             </div>
             
-            <div id="gemini-main-output" class="hidden prose max-w-none"></div>
-            
             <div id="folder-info-bar" class="hidden bg-white p-3 md:p-4 rounded-lg shadow-md mb-3 md:mb-4">
                 <h3 class="text-lg md:text-xl font-bold text-gray-800" id="folder-info-name">Nome Cartella</h3>
                 <p class="text-base md:text-lg text-gray-600" id="folder-info-xp">XP Totale: 0</p>
@@ -269,11 +241,10 @@
             </div>
             
             <div id="modal-monster-content" class="p-4 md:p-6 overflow-y-auto stat-block flex-1 text-sm md:text-base">
-                <div id="gemini-output" class="hidden"></div>
             </div>
             
             <div class="p-3 md:p-4 bg-gray-50 border-t border-gray-200 space-y-3 md:space-y-4">
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
+                <div id="add-to-folder-container" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
                     <label for="add-to-folder-select" class="text-sm font-medium text-gray-700 sm:flex-shrink-0">Aggiungi a Cartella:</label>
                     <select id="add-to-folder-select" class="flex-grow p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Scegli cartella...</option>
@@ -293,18 +264,6 @@
     <div id="toast" class="fixed bottom-4 md:bottom-10 left-4 right-4 md:left-auto md:right-10 bg-green-600 text-white py-3 px-4 md:px-6 rounded-lg shadow-xl text-base md:text-lg">
         <p id="toast-message">Notifica!</p>
     </div>
-
-    <div id="gemini-loading" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[99] flex justify-center items-center p-4">
-        <div class="bg-white p-4 md:p-6 rounded-lg shadow-xl flex items-center gap-3 md:gap-4">
-            <svg class="animate-spin h-6 w-6 md:h-8 md:w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span class="text-base md:text-lg font-medium text-gray-700">✨ Generazione...</span>
-        </div>
-    </div>
-    
-    <audio id="tts-audio-player" class="hidden"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -382,8 +341,6 @@
         let allMonsters = [];
         let currentMonster = null;
         let folders = {};
-        let audioContext;
-        let ttsLoading = false;
         let tempMonsterList = [];
         let currentFolderViewId = null;
         
@@ -413,10 +370,6 @@
         const saveTempFolderBtn = document.getElementById('save-temp-folder-btn');
         const clearTempFolderBtn = document.getElementById('clear-temp-folder-btn');
         const addToTempFolderBtn = document.getElementById('add-to-temp-folder-btn');
-        const geminiLoading = document.getElementById('gemini-loading');
-        const geminiMainOutput = document.getElementById('gemini-main-output');
-        const geminiModalOutput = document.getElementById('gemini-output');
-        const ttsAudioPlayer = document.getElementById('tts-audio-player');
         const menuToggle = document.getElementById('menu-toggle');
         const closeSidebar = document.getElementById('close-sidebar');
         const mobileSidebar = document.getElementById('mobile-sidebar');
@@ -832,13 +785,15 @@
             html += '</div>';
             
             modalContent.innerHTML = html;
-            geminiModalOutput.classList.add('hidden');
+            const addToFolderContainer = document.getElementById('add-to-folder-container');
 
-            // MODIFICA: Nascondi "Aggiungi a Selezione" se siamo in una cartella
+            // MODIFICA: Nascondi "Aggiungi a Selezione" e "Aggiungi a Cartella" se siamo in una cartella
             if (currentFolderViewId) {
                 addToTempFolderBtn.parentElement.classList.add('hidden');
+                addToFolderContainer.classList.add('hidden'); // Nasconde anche il dropdown cartelle
             } else {
                 addToTempFolderBtn.parentElement.classList.remove('hidden');
+                addToFolderContainer.classList.remove('hidden'); // Mostra anche il dropdown cartelle
             }
 
             modal.classList.remove('hidden');
@@ -1026,7 +981,6 @@
             folderInfoBar.classList.remove('hidden');
             folderInfoName.textContent = folder.name;
             folderInfoXp.textContent = `XP Totale: ${totalXp.toLocaleString()}`;
-            geminiMainOutput.classList.add('hidden');
         }
         
         // MODIFICA: Aggiunto ordinamento alfabetico anche alla vista cartella
@@ -1139,7 +1093,6 @@
             currentFolderViewId = null;
             displayMonsters(allMonsters);
             folderInfoBar.classList.add('hidden');
-            geminiMainOutput.classList.add('hidden');
         });
 
         createFolderBtn.addEventListener('click', createFolder);
