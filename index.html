@@ -486,64 +486,131 @@
 
         // IndexedDB functions
         let dbIndexed;
+        let indexedDBAvailable = false;
         
         function initIndexedDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open('DnDCompendiumDB', 1);
+                if (!window.indexedDB) {
+                    console.log('IndexedDB non supportato');
+                    reject(new Error('IndexedDB non supportato'));
+                    return;
+                }
                 
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => {
-                    dbIndexed = request.result;
-                    resolve(dbIndexed);
-                };
-                
-                request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    if (!db.objectStoreNames.contains('monsters')) {
-                        db.createObjectStore('monsters', { keyPath: 'id' });
-                    }
-                };
+                try {
+                    const request = indexedDB.open('DnDCompendiumDB', 1);
+                    
+                    request.onerror = () => {
+                        console.error('Errore apertura IndexedDB:', request.error);
+                        reject(request.error);
+                    };
+                    
+                    request.onsuccess = () => {
+                        dbIndexed = request.result;
+                        indexedDBAvailable = true;
+                        console.log('IndexedDB aperto con successo');
+                        resolve(dbIndexed);
+                    };
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('monsters')) {
+                            db.createObjectStore('monsters', { keyPath: 'id' });
+                            console.log('Object store "monsters" creato');
+                        }
+                    };
+                    
+                    request.onblocked = () => {
+                        console.warn('IndexedDB bloccato');
+                        reject(new Error('Database bloccato'));
+                    };
+                } catch (error) {
+                    console.error('Eccezione durante inizializzazione IndexedDB:', error);
+                    reject(error);
+                }
             });
         }
         
         function saveMonstersToIndexedDB(monsters) {
+            if (!indexedDBAvailable || !dbIndexed) {
+                return Promise.reject(new Error('IndexedDB non disponibile'));
+            }
+            
             return new Promise((resolve, reject) => {
-                const transaction = dbIndexed.transaction(['monsters'], 'readwrite');
-                const store = transaction.objectStore('monsters');
-                
-                store.clear();
-                store.put({ id: 'allMonsters', data: monsters });
-                
-                transaction.oncomplete = () => resolve();
-                transaction.onerror = () => reject(transaction.error);
+                try {
+                    const transaction = dbIndexed.transaction(['monsters'], 'readwrite');
+                    const store = transaction.objectStore('monsters');
+                    
+                    store.clear();
+                    const putRequest = store.put({ id: 'allMonsters', data: monsters });
+                    
+                    putRequest.onsuccess = () => {
+                        console.log('Mostri salvati in IndexedDB');
+                    };
+                    
+                    putRequest.onerror = () => {
+                        console.error('Errore salvataggio mostri:', putRequest.error);
+                    };
+                    
+                    transaction.oncomplete = () => resolve();
+                    transaction.onerror = () => reject(transaction.error);
+                } catch (error) {
+                    console.error('Eccezione durante salvataggio:', error);
+                    reject(error);
+                }
             });
         }
         
         function loadMonstersFromIndexedDB() {
+            if (!indexedDBAvailable || !dbIndexed) {
+                return Promise.resolve(null);
+            }
+            
             return new Promise((resolve, reject) => {
-                const transaction = dbIndexed.transaction(['monsters'], 'readonly');
-                const store = transaction.objectStore('monsters');
-                const request = store.get('allMonsters');
-                
-                request.onsuccess = () => {
-                    if (request.result) {
-                        resolve(request.result.data);
-                    } else {
-                        resolve(null);
-                    }
-                };
-                request.onerror = () => reject(request.error);
+                try {
+                    const transaction = dbIndexed.transaction(['monsters'], 'readonly');
+                    const store = transaction.objectStore('monsters');
+                    const request = store.get('allMonsters');
+                    
+                    request.onsuccess = () => {
+                        if (request.result) {
+                            console.log('Mostri caricati da IndexedDB:', request.result.data.length);
+                            resolve(request.result.data);
+                        } else {
+                            console.log('Nessun dato trovato in IndexedDB');
+                            resolve(null);
+                        }
+                    };
+                    request.onerror = () => {
+                        console.error('Errore caricamento mostri:', request.error);
+                        reject(request.error);
+                    };
+                } catch (error) {
+                    console.error('Eccezione durante caricamento:', error);
+                    reject(error);
+                }
             });
         }
         
         function clearSavedMonsters() {
+            if (!indexedDBAvailable || !dbIndexed) {
+                return Promise.reject(new Error('IndexedDB non disponibile'));
+            }
+            
             return new Promise((resolve, reject) => {
-                const transaction = dbIndexed.transaction(['monsters'], 'readwrite');
-                const store = transaction.objectStore('monsters');
-                store.clear();
-                
-                transaction.oncomplete = () => resolve();
-                transaction.onerror = () => reject(transaction.error);
+                try {
+                    const transaction = dbIndexed.transaction(['monsters'], 'readwrite');
+                    const store = transaction.objectStore('monsters');
+                    store.clear();
+                    
+                    transaction.oncomplete = () => {
+                        console.log('Database IndexedDB cancellato');
+                        resolve();
+                    };
+                    transaction.onerror = () => reject(transaction.error);
+                } catch (error) {
+                    console.error('Eccezione durante cancellazione:', error);
+                    reject(error);
+                }
             });
         }
 
@@ -559,13 +626,24 @@
                     const xmlString = e.target.result;
                     parseXML(xmlString);
                     
-                    // Salva in IndexedDB
-                    try {
-                        await saveMonstersToIndexedDB(allMonsters);
-                        showToast('Database salvato! Non dovrai ricaricarlo.');
-                    } catch (error) {
-                        console.error('Errore salvataggio IndexedDB:', error);
-                        showToast('Mostri caricati (non salvati localmente)');
+                    // Salva in IndexedDB solo se disponibile
+                    if (indexedDBAvailable) {
+                        try {
+                            await saveMonstersToIndexedDB(allMonsters);
+                            dbStatus.textContent = `✓ ${allMonsters.length} mostri salvati localmente`;
+                            dbStatus.className = 'mt-2 text-xs text-green-600 font-medium';
+                            clearDbBtn.classList.remove('hidden');
+                            showToast('Database salvato! Non dovrai ricaricarlo.');
+                        } catch (error) {
+                            console.error('Errore salvataggio IndexedDB:', error);
+                            dbStatus.textContent = '⚠ Mostri caricati ma non salvati localmente';
+                            dbStatus.className = 'mt-2 text-xs text-orange-600';
+                            showToast('Mostri caricati (non salvati localmente)');
+                        }
+                    } else {
+                        dbStatus.textContent = '⚠ Mostri caricati solo in sessione (non salvati)';
+                        dbStatus.className = 'mt-2 text-xs text-orange-600';
+                        showToast('Mostri caricati (salvataggio non disponibile)');
                     }
                 } catch (error) {
                     console.error("Errore durante il parsing:", error);
@@ -1157,49 +1235,90 @@
             }, 3000);
         }
 
+        geminiTacticsBtn.addEventListener('click', () => {
+            showToast('Funzione Gemini non implementata');
+        });
+
+        geminiFlavorBtn.addEventListener('click', () => {
+            showToast('Funzione Gemini non implementata');
+        });
 
         clearDbBtn.addEventListener('click', async () => {
+            if (!indexedDBAvailable) {
+                showToast('Salvataggio locale non disponibile');
+                return;
+            }
+            
             if (confirm('Eliminare il database salvato? Dovrai ricaricare il file XML.')) {
                 try {
                     await clearSavedMonsters();
                     allMonsters = [];
                     displayMonsters([]);
-                    dbStatus.textContent = '';
+                    dbStatus.textContent = 'Database eliminato. Carica un file XML.';
+                    dbStatus.className = 'mt-2 text-xs text-gray-500';
                     clearDbBtn.classList.add('hidden');
                     loadingMessage.classList.remove('hidden');
                     loadingMessage.textContent = 'Carica il file XML per iniziare';
                     showToast('Database eliminato');
                 } catch (error) {
                     console.error('Errore eliminazione:', error);
+                    showToast('Errore durante l\'eliminazione');
                 }
             }
         });
 
         // Inizializza app
         async function initApp() {
+            console.log('Inizializzazione app...');
+            
+            // Prova a inizializzare IndexedDB
             try {
                 await initIndexedDB();
-                console.log('IndexedDB inizializzato');
+                console.log('✓ IndexedDB inizializzato correttamente');
                 
                 // Prova a caricare mostri salvati
-                const savedMonsters = await loadMonstersFromIndexedDB();
-                if (savedMonsters && savedMonsters.length > 0) {
-                    allMonsters = savedMonsters;
-                    displayMonsters(allMonsters);
-                    loadingMessage.classList.add('hidden');
-                    dbStatus.textContent = `✓ ${allMonsters.length} mostri caricati dal database locale`;
-                    dbStatus.className = 'mt-2 text-xs text-green-600 font-medium';
-                    clearDbBtn.classList.remove('hidden');
-                    showToast('Database caricato automaticamente!');
-                } else {
-                    dbStatus.textContent = 'Nessun database salvato';
+                try {
+                    const savedMonsters = await loadMonstersFromIndexedDB();
+                    if (savedMonsters && savedMonsters.length > 0) {
+                        allMonsters = savedMonsters;
+                        displayMonsters(allMonsters);
+                        loadingMessage.classList.add('hidden');
+                        dbStatus.textContent = `✓ ${allMonsters.length} mostri caricati dal database locale`;
+                        dbStatus.className = 'mt-2 text-xs text-green-600 font-medium';
+                        clearDbBtn.classList.remove('hidden');
+                        showToast('Database caricato automaticamente!');
+                        console.log('✓ Mostri caricati da IndexedDB');
+                    } else {
+                        dbStatus.textContent = 'Nessun database salvato. Carica un file XML.';
+                        dbStatus.className = 'mt-2 text-xs text-gray-500';
+                        console.log('ℹ Nessun dato salvato in IndexedDB');
+                    }
+                } catch (loadError) {
+                    console.error('Errore caricamento da IndexedDB:', loadError);
+                    dbStatus.textContent = 'Errore caricamento database. Carica un file XML.';
+                    dbStatus.className = 'mt-2 text-xs text-orange-600';
                 }
-            } catch (error) {
-                console.error('Errore inizializzazione IndexedDB:', error);
-                showToast('Avviso: salvataggio locale non disponibile');
+            } catch (initError) {
+                console.error('Errore inizializzazione IndexedDB:', initError);
+                indexedDBAvailable = false;
+                dbStatus.textContent = '⚠ Salvataggio locale non disponibile. I dati saranno temporanei.';
+                dbStatus.className = 'mt-2 text-xs text-orange-600 font-medium';
+                
+                // Mostra un alert più dettagliato
+                if (initError.message.includes('bloccato')) {
+                    showToast('Database bloccato. Chiudi altre schede dell\'app.');
+                } else {
+                    console.log('Dettagli errore:', {
+                        message: initError.message,
+                        name: initError.name,
+                        stack: initError.stack
+                    });
+                }
             }
             
+            // Inizializza Firebase indipendentemente da IndexedDB
             await setupFirebase();
+            console.log('✓ Inizializzazione completata');
         }
 
         uploader.addEventListener('change', handleFileLoad);
