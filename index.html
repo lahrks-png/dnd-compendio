@@ -813,7 +813,7 @@
                 monster.spells.forEach(spell => {
                     // Applica evidenziazione anche alle reazioni
                     let spellText = highlightStatsInText(spell.text);
-                    html += `<p><strong>${spell.name}.</strong style="color:blue;"> ${spellText}</p>`;
+                    html += `<p><strong>${spell.text}.</strong style="color:blue;"> ${spellText}</p>`;
                 });
             }
             
@@ -1383,6 +1383,7 @@
     </script>
 </body>
 </html>
+
 
 
 
