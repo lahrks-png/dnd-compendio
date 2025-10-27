@@ -636,6 +636,7 @@
                     actions: getTraitsOrActions(monster, 'action'),
                     legendary: getTraitsOrActions(monster, 'legendary'),
                     reactions: getTraitsOrActions(monster, 'reaction'),
+                    spells: getTraitsOrActions(monster, 'spells'),
                     description: getElementText(monster, 'description')
                 };
                 allMonsters.push(monsterData);
@@ -748,11 +749,11 @@
             const highlightStatsInText = (text) => {
                 let highlighted = text;
                 // Evidenzia danni (es. 10 (3d6) piercing damage)
-                highlighted = highlighted.replace(/(\d+\s*\(\d+d\d+\s*(?:[\+\-]\s*\d+)?\)\s*\w+\s*damage)/g, '<strong>$1</strong>');
+                highlighted = highlighted.replace(/(\d+\s*\(\d+d\d+\s*(?:[\+\-]\s*\d+)?\)\s*\w+\s*damage)/g, '<strong style="color:blue;">$1</strong>');
                 // Evidenzia danni (es. 3d6 piercing damage)
-                highlighted = highlighted.replace(/(\d+d\d+\s*(?:[\+\-]\s*\d+)?\s*\w+\s*damage)/g, '<strong>$1</strong>');
+                highlighted = highlighted.replace(/(\d+d\d+\s*(?:[\+\-]\s*\d+)?\s*\w+\s*damage)/g, '<strong style="color:blue;">$1</strong>');
                 // Evidenzia Tiri Salvezza (es. DC 15 Constitution saving throw)
-                highlighted = highlighted.replace(/(DC\s*\d+\s*\w+\s*saving throw)/g, '<strong>$1</strong>');
+                highlighted = highlighted.replace(/(DC\s*\d+\s*\w+\s*saving throw)/g, '<strong style="color:blue;">$1</strong>');
                 return highlighted;
             };
 
@@ -762,7 +763,7 @@
                     let traitText = highlightStatsInText(trait.text);
                     // Evidenzia tutto il blocco incantesimi
                     if (trait.name.toLowerCase().includes('incantesimi') || trait.name.toLowerCase().includes('spellcasting')) {
-                        traitText = `<strong>${traitText}</strong>`;
+                        traitText = `<strong style="color:blue;">${traitText}</strong>`;
                     }
                     html += `<p><strong>${trait.name}.</strong> ${traitText}</p>`;
                 });
@@ -782,9 +783,9 @@
                     // Evidenzia bonus e danni in 'attack'
                     if (attackText) {
                         // Evidenzia bonus (es. +5 to hit)
-                        attackText = attackText.replace(/(\+\d+\s*to hit)/g, '<strong>$1</strong>');
+                        attackText = attackText.replace(/(\+\d+\s*to hit)/g, '<strong style="color:blue;">$1</strong>');
                         // Evidenzia danni (es. Hit: 6 (1d6 + 3) piercing damage.)
-                        attackText = attackText.replace(/(Hit:\s*.*?damage(?: plus .*? damage)?\.)/g, '<strong>$1</strong>');
+                        attackText = attackText.replace(/(Hit:\s*.*?damage(?: plus .*? damage)?\.)/g, '<strong style="color:blue;">$1</strong>');
                     }
                     
                     html += `<p><strong>${action.name}.</strong> ${actionText}`;
@@ -798,7 +799,7 @@
                 monster.reactions.forEach(reaction => {
                     // Applica evidenziazione anche alle reazioni
                     let reactionText = highlightStatsInText(reaction.text);
-                    html += `<p><strong>${reaction.name}.</strong> ${reactionText}</p>`;
+                    html += `<p><strong>${reaction.name}.</strong style="color:blue;"> ${reactionText}</p>`;
                 });
             }
             
@@ -807,7 +808,16 @@
                 monster.legendary.forEach(leg => {
                     // Applica evidenziazione anche alle azioni leggendarie
                     let legendaryText = highlightStatsInText(leg.text);
-                    html += `<p><strong>${leg.name}.</strong> ${legendaryText}</p>`;
+                    html += `<p><strong style="color:blue;">${leg.name}.</strong> ${legendaryText}</p>`;
+                });
+            }
+
+            if (monster.spells.length > 0) {
+                html += '<h3>Incantesimi</h3>';
+                monster.spells.forEach(leg => {
+                    // Applica evidenziazione anche alle azioni leggendarie
+                    let spellText = highlightStatsInText(leg.text);
+                    html += `<p><strong style="color:blue;">${leg.name}.</strong> ${spellText}</p>`;
                 });
             }
             
@@ -1366,4 +1376,5 @@
     </script>
 </body>
 </html>
+
 
