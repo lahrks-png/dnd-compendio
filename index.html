@@ -763,7 +763,7 @@
                     // Evidenzia tutto il blocco incantesimi
                     if (trait.name.toLowerCase().includes('incantesimi') || trait.name.toLowerCase().includes('spellcasting')) {
                         traitText = traitText.replace(DC\s*\d+.* '<strong style="color:blue;">$1</strong>');
-                    }
+                    };
                     html += `<p><strong>${trait.name}.</strong> ${traitText}</p>`;
                 });
             }
@@ -1373,6 +1373,7 @@
     </script>
 </body>
 </html>
+
 
 
 
