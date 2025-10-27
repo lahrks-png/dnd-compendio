@@ -718,8 +718,8 @@
                     <p><strong>Tipo:</strong> ${monster.type}</p>
                     <p><strong>Allineamento:</strong> ${monster.alignment}</p>
                     <hr>
-                    <p><strong>Classe Armatura:</strong></p> <p style="color:blue;"><strong>${monster.ac}</strong></p>
-                    <p><strong>Punti Ferita:</strong> </p> <p style="color:red;"><strong>${monster.hp}</strong></p>
+                    <p><strong>Classe Armatura:</strong> <strong style="color:blue;">${monster.ac}</strong></p>
+                    <p><strong>Punti Ferita:</strong> <strong style="color:red;">${monster.hp}</strong></p>
                     <p><strong>Velocità:</strong> ${monster.speed}</p>
                     <hr>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
@@ -733,7 +733,7 @@
                     <hr>
             `;
             
-            if (monster.save) html += `<p><strong>Tiri Salvezza:</strong> ${monster.save}</p>`;
+            if (monster.save) html += `<p><strong>Tiri Salvezza:</strong> <text style="color:grren;">${monster.save}</text></p>`;
             if (monster.skill) html += `<p><strong>Abilità:</strong> ${monster.skill}</p>`;
             if (monster.resist) html += `<p><strong>Resistenze:</strong> ${monster.resist}</p>`;
             if (monster.vulnerable) html += `<p><strong>Vulnerabilità:</strong> ${monster.vulnerable}</p>`;
@@ -762,8 +762,8 @@
                     let traitText = highlightStatsInText(trait.text);
                     // Evidenzia tutto il blocco incantesimi
                     if (trait.name.toLowerCase().includes('incantesimi') || trait.name.toLowerCase().includes('spellcasting')) {
-                        traitText = traitText.replace(DC\s*\d+.* '<strong style="color:blue;">$1</strong>');
-                    };
+                        traitText = traitText.replace((DC\s*\d+.*), `<strong style="color:blue;">${traitText}</strong>`);
+                    }
                     html += `<p><strong>${trait.name}.</strong> ${traitText}</p>`;
                 });
             }
@@ -776,7 +776,7 @@
 
                     // Evidenzia tutto il blocco incantesimi (se è un'azione)
                     if (action.name.toLowerCase().includes('incantesimi') || action.name.toLowerCase().includes('spellcasting')) {
-                        actionText = `<strong style="color:blue;">${actionText}</strong>`;
+                        actionText = actionText.replace((DC\s*\d+.*), `<strong style="color:blue;">${actionText}</strong>`);
                     }
 
                     // Evidenzia bonus e danni in 'attack'
@@ -797,12 +797,11 @@
                 html += '<h3>Reazioni</h3>';
                 monster.reactions.forEach(reaction => {
                     // Applica evidenziazione anche alle reazioni
-                    if (reactionText) {
-                        // Evidenzia bonus (es. +5 to hit)
-                        reactionText = reactionText.replace(/(\+\d+\s*to hit)/g, '<strong style="color:blue;">$1</strong>');
-                        // Evidenzia danni (es. Hit: 6 (1d6 + 3) piercing damage.)
-                        reactionText = reactionText.replace(/(Hit:\s*.*?damage(?: plus .*? damage)?\.)/g, '<strong style="color:blue;">$1</strong>');
-                    }
+                    let reactionText = highlightStatsInText(reaction.text);
+                    // Evidenzia bonus (es. +5 to hit)
+                    reactionText = reactionText.replace(/(\+\d+\s*to hit)/g, '<strong style="color:blue;">$1</strong>');
+                    // Evidenzia danni (es. Hit: 6 (1d6 + 3) piercing damage.)
+                    reactionText = reactionText.replace(/(Hit:\s*.*?damage(?: plus .*? damage)?\.)/g, '<strong style="color:blue;">$1</strong>');
                     html += `<p><strong>${reaction.name}.</strong> ${reactionText}</p>`;
                 });
             }
@@ -812,11 +811,13 @@
                 monster.legendary.forEach(leg => {
                     // Applica evidenziazione anche alle azioni leggendarie
                     let legendaryText = highlightStatsInText(leg.text);
-                    html += `<p><strong style="color:blue;">${leg.name}.</strong> ${legendaryText}</p>`;
+                    // Evidenzia bonus (es. +5 to hit)
+                    legendaryText = legendaryText.replace(/(\+\d+\s*to hit)/g, '<strong style="color:blue;">$1</strong>');
+                    // Evidenzia danni (es. Hit: 6 (1d6 + 3) piercing damage.)
+                    legendaryText = legendaryText.replace(/(Hit:\s*.*?damage(?: plus .*? damage)?\.)/g, '<strong style="color:blue;">$1</strong>');
+                    html += `<p><strong>${leg.name}.</strong> ${legendaryText}</p>`;
                 });
             }
-
-
             
             html += '</div>';
             
@@ -1373,13 +1374,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
