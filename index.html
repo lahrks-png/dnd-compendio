@@ -798,8 +798,13 @@
                 html += '<h3>Reazioni</h3>';
                 monster.reactions.forEach(reaction => {
                     // Applica evidenziazione anche alle reazioni
-                    let reactionText = highlightStatsInText(reaction.text);
-                    html += `<p><strong>${reaction.name}.</strong style="color:blue;"> ${reactionText}</p>`;
+                    if (reactionText) {
+                        // Evidenzia bonus (es. +5 to hit)
+                        reactionText = reactionText.replace(/(\+\d+\s*to hit)/g, '<strong style="color:blue;">$1</strong>');
+                        // Evidenzia danni (es. Hit: 6 (1d6 + 3) piercing damage.)
+                        reactionText = reactionText.replace(/(Hit:\s*.*?damage(?: plus .*? damage)?\.)/g, '<strong style="color:blue;">$1</strong>');
+                    }
+                    html += `<p><strong>${reaction.name}.</strong> ${reactionText}</p>`;
                 });
             }
 
@@ -1378,6 +1383,7 @@
     </script>
 </body>
 </html>
+
 
 
 
