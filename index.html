@@ -719,7 +719,7 @@
                     <p><strong>Allineamento:</strong> ${monster.alignment}</p>
                     <hr>
                     <p><strong>Classe Armatura:</strong> <strong style="color:blue;">${monster.ac}</strong></p>
-                    <p><strong>Punti Ferita:</strong> <strong>${monster.hp}</strong></p>
+                    <p><strong>Punti Ferita:</strong> <strong style="color:red;">${monster.hp}</strong></p>
                     <p><strong>Velocità:</strong> ${monster.speed}</p>
                     <hr>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
@@ -733,7 +733,7 @@
                     <hr>
             `;
             
-            if (monster.save) html += `<p><strong>Tiri Salvezza:</strong> ${monster.save}</p>`;
+            if (monster.save) html += `<p><strong>Tiri Salvezza:</strong> <text  style="color:green;">${monster.save}</text></p>`;
             if (monster.skill) html += `<p><strong>Abilità:</strong> ${monster.skill}</p>`;
             if (monster.resist) html += `<p><strong>Resistenze:</strong> ${monster.resist}</p>`;
             if (monster.vulnerable) html += `<p><strong>Vulnerabilità:</strong> ${monster.vulnerable}</p>`;
@@ -1366,4 +1366,5 @@
     </script>
 </body>
 </html>
+
 
