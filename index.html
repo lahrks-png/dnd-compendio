@@ -812,14 +812,7 @@
                 });
             }
 
-            if (monster.spells.length > 0) {
-                html += '<h3>Incantesimi</h3>';
-                monster.spells.forEach(leg => {
-                    // Applica evidenziazione anche alle azioni leggendarie
-                    let spellText = highlightStatsInText(leg.text);
-                    html += `<p><strong style="color:blue;">${leg.name}.</strong> ${spellText}</p>`;
-                });
-            }
+
             
             html += '</div>';
             
@@ -1376,5 +1369,6 @@
     </script>
 </body>
 </html>
+
 
 
