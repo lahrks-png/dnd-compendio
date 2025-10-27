@@ -636,7 +636,6 @@
                     actions: getTraitsOrActions(monster, 'action'),
                     legendary: getTraitsOrActions(monster, 'legendary'),
                     reactions: getTraitsOrActions(monster, 'reaction'),
-                    spells: getTraitsOrActions(monster, 'spells'),
                     description: getElementText(monster, 'description')
                 };
                 allMonsters.push(monsterData);
@@ -763,7 +762,7 @@
                     let traitText = highlightStatsInText(trait.text);
                     // Evidenzia tutto il blocco incantesimi
                     //if (trait.name.toLowerCase().includes('incantesimi') || trait.name.toLowerCase().includes('spellcasting')) {
-                    //    traitText = `<strong style="color:blue;">${traitText}</strong>`;
+                    //    traitText = traitText.replace(DC\s*\d+.* '<strong style="color:blue;">$1</strong>');
                     //}
                     html += `<p><strong>${trait.name}.</strong> ${traitText}</p>`;
                 });
@@ -805,15 +804,6 @@
                         reactionText = reactionText.replace(/(Hit:\s*.*?damage(?: plus .*? damage)?\.)/g, '<strong style="color:blue;">$1</strong>');
                     }
                     html += `<p><strong>${reaction.name}.</strong> ${reactionText}</p>`;
-                });
-            }
-
-            if (monster.spells.length > 0) {
-                html += '<h3>Incantesimi</h3>';
-                monster.spells.forEach(spell => {
-                    // Applica evidenziazione anche alle reazioni
-                    let spellText = highlightStatsInText(spell.text);
-                    html += `<p><strong style="color:blue;">${spell.text}.</strong> ${spellText}</p>`;
                 });
             }
             
@@ -1383,6 +1373,7 @@
     </script>
 </body>
 </html>
+
 
 
 
