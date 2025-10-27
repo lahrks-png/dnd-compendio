@@ -11,10 +11,8 @@
     
     <title>Visualizzatore Compendio D&D</title>
     
-    <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     
-    <!-- Icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🐉</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🐉</text></svg>">
     
@@ -112,7 +110,6 @@
 </head>
 <body class="bg-gray-100 text-gray-900 antialiased">
 
-    <!-- Install Prompt (PWA) -->
     <div id="install-prompt" class="hidden fixed bottom-0 left-0 right-0 bg-blue-600 text-white p-4 shadow-lg z-50">
         <div class="container mx-auto flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
@@ -133,7 +130,6 @@
         </div>
     </div>
 
-    <!-- Header -->
     <header class="bg-white shadow-md p-3 md:p-4 sticky top-0 z-20">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -172,7 +168,6 @@
                 </button>
             </div>
 
-            <!-- MODIFICA: Aggiunto filtro GS/CR -->
             <div class="mt-4 md:mt-6">
                 <label for="filter-input" class="block text-sm font-medium text-gray-700 mb-2">Filtra per Nome/Tipo</label>
                 <input type="text" id="filter-input" placeholder="Es. Goblin, Drago..." class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
@@ -180,11 +175,8 @@
                 <label for="cr-filter-select" class="block text-sm font-medium text-gray-700 mb-2 mt-4">Filtra per GS (CR)</label>
                 <select id="cr-filter-select" class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
                     <option value="">Qualsiasi GS</option>
-                    <!-- Le opzioni saranno popolate da JS -->
-                </select>
+                    </select>
             </div>
-            <!-- FINE MODIFICA -->
-
             <div class="mt-4 md:mt-6 border border-blue-300 bg-blue-50 p-3 rounded-lg">
                 <h2 class="text-base md:text-lg font-semibold text-blue-800 mb-2">Selezione Attuale</h2>
                 <ul id="temp-folder-list" class="space-y-1 mb-3 max-h-32 overflow-y-auto text-sm">
@@ -233,7 +225,6 @@
 
     <div id="preview-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center">
         <div class="bg-white rounded-none md:rounded-2xl shadow-2xl w-full h-full md:w-auto md:h-auto md:max-w-4xl md:max-h-[90vh] flex flex-col">
-            <!-- MODIFICA: Rimossa la X di chiusura e centrato il titolo -->
             <div class="flex justify-center items-center p-3 md:p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
                 <h2 id="modal-monster-name" class="text-lg md:text-2xl font-bold text-gray-900">Nome Mostro</h2>
             </div>
@@ -713,20 +704,22 @@
             return card;
         }
 
+        // MODIFICA: Inizio della modifica per evidenziare i valori
         function openModal(monster) {
             currentMonster = monster;
             modalName.textContent = monster.name;
             
             const xp = crXpMap[monster.cr] || 0;
             
+            // MODIFICA: Evidenzia CA e PF
             let html = `
                 <div class="space-y-2">
                     <p><strong>Taglia:</strong> ${monster.size}</p>
                     <p><strong>Tipo:</strong> ${monster.type}</p>
                     <p><strong>Allineamento:</strong> ${monster.alignment}</p>
                     <hr>
-                    <p><strong>Classe Armatura:</strong> ${monster.ac}</p>
-                    <p><strong>Punti Ferita:</strong> ${monster.hp}</p>
+                    <p><strong>Classe Armatura:</strong> <strong>${monster.ac}</strong></p>
+                    <p><strong>Punti Ferita:</strong> <strong>${monster.hp}</strong></p>
                     <p><strong>Velocità:</strong> ${monster.speed}</p>
                     <hr>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
@@ -751,18 +744,51 @@
             
             html += `<p><strong>Grado di Sfida:</strong> ${monster.cr} (${xp} PE)</p>`;
             
+            // MODIFICA: Funzione helper per evidenziare danni e DC nel testo
+            const highlightStatsInText = (text) => {
+                let highlighted = text;
+                // Evidenzia danni (es. 10 (3d6) piercing damage)
+                highlighted = highlighted.replace(/(\d+\s*\(\d+d\d+\s*(?:[\+\-]\s*\d+)?\)\s*\w+\s*damage)/g, '<strong>$1</strong>');
+                // Evidenzia danni (es. 3d6 piercing damage)
+                highlighted = highlighted.replace(/(\d+d\d+\s*(?:[\+\-]\s*\d+)?\s*\w+\s*damage)/g, '<strong>$1</strong>');
+                // Evidenzia Tiri Salvezza (es. DC 15 Constitution saving throw)
+                highlighted = highlighted.replace(/(DC\s*\d+\s*\w+\s*saving throw)/g, '<strong>$1</strong>');
+                return highlighted;
+            };
+
             if (monster.traits.length > 0) {
                 html += '<h3>Tratti</h3>';
                 monster.traits.forEach(trait => {
-                    html += `<p><strong>${trait.name}.</strong> ${trait.text}</p>`;
+                    let traitText = highlightStatsInText(trait.text);
+                    // Evidenzia tutto il blocco incantesimi
+                    if (trait.name.toLowerCase().includes('incantesimi') || trait.name.toLowerCase().includes('spellcasting')) {
+                        traitText = `<strong>${traitText}</strong>`;
+                    }
+                    html += `<p><strong>${trait.name}.</strong> ${traitText}</p>`;
                 });
             }
             
             if (monster.actions.length > 0) {
                 html += '<h3>Azioni</h3>';
                 monster.actions.forEach(action => {
-                    html += `<p><strong>${action.name}.</strong> ${action.text}`;
-                    if (action.attack) html += ` <em>${action.attack}</em>`;
+                    let actionText = highlightStatsInText(action.text);
+                    let attackText = action.attack;
+
+                    // Evidenzia tutto il blocco incantesimi (se è un'azione)
+                    if (action.name.toLowerCase().includes('incantesimi') || action.name.toLowerCase().includes('spellcasting')) {
+                        actionText = `<strong>${actionText}</strong>`;
+                    }
+
+                    // Evidenzia bonus e danni in 'attack'
+                    if (attackText) {
+                        // Evidenzia bonus (es. +5 to hit)
+                        attackText = attackText.replace(/(\+\d+\s*to hit)/g, '<strong>$1</strong>');
+                        // Evidenzia danni (es. Hit: 6 (1d6 + 3) piercing damage.)
+                        attackText = attackText.replace(/(Hit:\s*.*?damage(?: plus .*? damage)?\.)/g, '<strong>$1</strong>');
+                    }
+                    
+                    html += `<p><strong>${action.name}.</strong> ${actionText}`;
+                    if (attackText) html += ` <em>${attackText}</em>`;
                     html += '</p>';
                 });
             }
@@ -770,14 +796,18 @@
             if (monster.reactions.length > 0) {
                 html += '<h3>Reazioni</h3>';
                 monster.reactions.forEach(reaction => {
-                    html += `<p><strong>${reaction.name}.</strong> ${reaction.text}</p>`;
+                    // Applica evidenziazione anche alle reazioni
+                    let reactionText = highlightStatsInText(reaction.text);
+                    html += `<p><strong>${reaction.name}.</strong> ${reactionText}</p>`;
                 });
             }
             
             if (monster.legendary.length > 0) {
                 html += '<h3>Azioni Leggendarie</h3>';
                 monster.legendary.forEach(leg => {
-                    html += `<p><strong>${leg.name}.</strong> ${leg.text}</p>`;
+                    // Applica evidenziazione anche alle azioni leggendarie
+                    let legendaryText = highlightStatsInText(leg.text);
+                    html += `<p><strong>${leg.name}.</strong> ${legendaryText}</p>`;
                 });
             }
             
@@ -801,6 +831,7 @@
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
+        // MODIFICA: Fine della modifica
 
         function closeModal() {
             modal.classList.add('hidden');
