@@ -762,9 +762,9 @@
                 monster.traits.forEach(trait => {
                     let traitText = highlightStatsInText(trait.text);
                     // Evidenzia tutto il blocco incantesimi
-                    if (trait.name.toLowerCase().includes('incantesimi') || trait.name.toLowerCase().includes('spellcasting')) {
-                        traitText = `<strong style="color:blue;">${traitText}</strong>`;
-                    }
+                    //if (trait.name.toLowerCase().includes('incantesimi') || trait.name.toLowerCase().includes('spellcasting')) {
+                    //    traitText = `<strong style="color:blue;">${traitText}</strong>`;
+                    //}
                     html += `<p><strong>${trait.name}.</strong> ${traitText}</p>`;
                 });
             }
@@ -777,7 +777,7 @@
 
                     // Evidenzia tutto il blocco incantesimi (se è un'azione)
                     if (action.name.toLowerCase().includes('incantesimi') || action.name.toLowerCase().includes('spellcasting')) {
-                        actionText = `<strong>${actionText}</strong>`;
+                        actionText = `<strong style="color:blue;">${actionText}</strong>`;
                     }
 
                     // Evidenzia bonus e danni in 'attack'
@@ -800,6 +800,15 @@
                     // Applica evidenziazione anche alle reazioni
                     let reactionText = highlightStatsInText(reaction.text);
                     html += `<p><strong>${reaction.name}.</strong style="color:blue;"> ${reactionText}</p>`;
+                });
+            }
+
+            if (monster.spells.length > 0) {
+                html += '<h3>Incantesimi</h3>';
+                monster.spells.forEach(spell => {
+                    // Applica evidenziazione anche alle reazioni
+                    let spellText = highlightStatsInText(spell.text);
+                    html += `<p><strong>${spell.name}.</strong style="color:blue;"> ${spellText}</p>`;
                 });
             }
             
@@ -1369,6 +1378,7 @@
     </script>
 </body>
 </html>
+
 
 
 
