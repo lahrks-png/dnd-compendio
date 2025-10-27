@@ -748,11 +748,11 @@
             const highlightStatsInText = (text) => {
                 let highlighted = text;
                 // Evidenzia danni (es. 10 (3d6) piercing damage)
-                highlighted = highlighted.replace(/(\d+\s*\(\d+d\d+\s*(?:[\+\-]\s*\d+)?\)\s*\w+\s*damage)/g, '<strongstyle="color:blue;">$1</strong>');
+                highlighted = highlighted.replace(/(\d+\s*\(\d+d\d+\s*(?:[\+\-]\s*\d+)?\)\s*\w+\s*damage)/g, '<strong style="color:blue;">$1</strong>');
                 // Evidenzia danni (es. 3d6 piercing damage)
-                highlighted = highlighted.replace(/(\d+d\d+\s*(?:[\+\-]\s*\d+)?\s*\w+\s*damage)/g, '<strongstyle="color:blue;">$1</strong>');
+                highlighted = highlighted.replace(/(\d+d\d+\s*(?:[\+\-]\s*\d+)?\s*\w+\s*damage)/g, '<strong style="color:blue;">$1</strong>');
                 // Evidenzia Tiri Salvezza (es. DC 15 Constitution saving throw)
-                highlighted = highlighted.replace(/(DC\s*\d+\s*\w+\s*saving throw)/g, '<strongstyle="color:blue;">$1</strong>');
+                highlighted = highlighted.replace(/(DC\s*\d+\s*\w+\s*saving throw)/g, '<strong style="color:blue;">$1</strong>');
                 return highlighted;
             };
 
@@ -762,7 +762,7 @@
                     let traitText = highlightStatsInText(trait.text);
                     // Evidenzia tutto il blocco incantesimi
                     if (trait.name.toLowerCase().includes('incantesimi') || trait.name.toLowerCase().includes('spellcasting')) {
-                        traitText = traitText.replace(/(•.*)/s, '<strongstyle="color:blue;">$1</strong>');
+                        traitText = traitText.replace(/(•.*)/s, '<strong style="color:blue;">$1</strong>');
                     }
                     html += `<p><strong>${trait.name}.</strong> ${traitText}</p>`;
                 });
@@ -776,15 +776,15 @@
 
                     // Evidenzia tutto il blocco incantesimi (se è un'azione)
                     if (action.name.toLowerCase().includes('incantesimi') || action.name.toLowerCase().includes('spellcasting')) {
-                        actionText = actionText.replace(/(•.*)/s, '<strongstyle="color:blue;">$1</strong>');
+                        actionText = actionText.replace(/(•.*)/s, '<strong style="color:blue;">$1</strong>');
                     }
 
                     // Evidenzia bonus e danni in 'attack'
                     if (attackText) {
                         // Evidenzia bonus (es. +5 to hit)
-                        attackText = attackText.replace(/(\+\d+\s*to hit)/g, '<strongstyle="color:blue;">$1</strong>');
+                        attackText = attackText.replace(/(\+\d+\s*to hit)/g, '<strong style="color:blue;">$1</strong>');
                         // Evidenzia danni (es. Hit: 6 (1d6 + 3) piercing damage.)
-                        attackText = attackText.replace(/(Hit:\s*.*?damage(?: plus .*? damage)?\.)/g, '<strongstyle="color:blue;">$1</strong>');
+                        attackText = attackText.replace(/(Hit:\s*.*?damage(?: plus .*? damage)?\.)/g, '<strong style="color:blue;">$1</strong>');
                     }
                     
                     html += `<p><strong>${action.name}.</strong> ${actionText}`;
@@ -1366,6 +1366,7 @@
     </script>
 </body>
 </html>
+
 
 
 
