@@ -733,7 +733,7 @@
                     <hr>
             `;
             
-            if (monster.save) html += `<p><strong>Tiri Salvezza:</strong> <text  style="color:green;">${monster.save}</text></p>`;
+            if (monster.save) html += `<p><strong>Tiri Salvezza:</strong> <strong style="color:blue;"> ${monster.save}</strong></p>`;
             if (monster.skill) html += `<p><strong>Abilità:</strong> ${monster.skill}</p>`;
             if (monster.resist) html += `<p><strong>Resistenze:</strong> ${monster.resist}</p>`;
             if (monster.vulnerable) html += `<p><strong>Vulnerabilità:</strong> ${monster.vulnerable}</p>`;
@@ -762,7 +762,7 @@
                     let traitText = highlightStatsInText(trait.text);
                     // Evidenzia tutto il blocco incantesimi
                     if (trait.name.toLowerCase().includes('incantesimi') || trait.name.toLowerCase().includes('spellcasting')) {
-                        traitText = `<strong>${traitText}</strong>`;
+                        traitText = traitText.replace(/(DC\s*\d+.*)/g, '<strong>$1</strong>');
                     }
                     html += `<p><strong>${trait.name}.</strong> ${traitText}</p>`;
                 });
@@ -1366,5 +1366,6 @@
     </script>
 </body>
 </html>
+
 
 
