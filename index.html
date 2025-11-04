@@ -214,10 +214,16 @@
             </div>
             
             <div id="folder-info-bar" class="hidden bg-white p-3 md:p-4 rounded-lg shadow-md mb-3 md:mb-4">
-                <h3 class="text-lg md:text-xl font-bold text-gray-800" id="folder-info-name">Nome Cartella</h3>
-                <p class="text-base md:text-lg text-gray-600" id="folder-info-xp">XP Totale: 0</p>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-lg md:text-xl font-bold text-gray-800" id="folder-info-name">Nome Cartella</h3>
+                        <p class="text-base md:text-lg text-gray-600" id="folder-info-xp">XP Totale: 0</p>
+                    </div>
+                    <button id="close-folder-view-btn" class="text-gray-400 hover:text-red-600 focus:outline-none p-1 -mt-1 -mr-1">
+                        <ion-icon name="close-circle" class="text-3xl"></ion-icon>
+                    </button>
+                </div>
             </div>
-            
             <div id="monster-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             </div>
         </main>
@@ -349,6 +355,8 @@
         const folderInfoBar = document.getElementById('folder-info-bar');
         const folderInfoName = document.getElementById('folder-info-name');
         const folderInfoXp = document.getElementById('folder-info-xp');
+        // MODIFICA: Aggiunto il nuovo pulsante di chiusura cartella
+        const closeFolderViewBtn = document.getElementById('close-folder-view-btn');
         const modal = document.getElementById('preview-modal');
         // MODIFICA: Rimossa la costante del bottone di chiusura
         // const closeModalBtn = document.getElementById('close-modal-btn');
@@ -1056,6 +1064,27 @@
             }
         }
 
+        // MODIFICA: Creata funzione riutilizzabile per mostrare tutti i mostri e resettare i filtri
+        function showAllMonstersView() {
+            currentFolderViewId = null;
+            
+            // Resetta i filtri
+            filterInput.value = '';
+            crFilterSelect.value = '';
+            
+            // Nascondi la barra info cartella
+            folderInfoBar.classList.add('hidden');
+            
+            // Applica i filtri (ora vuoti) per mostrare tutti
+            applyFilters(); 
+            
+            // Se siamo su mobile e il menu è aperto, chiudilo
+            if (window.innerWidth < 768 && mobileSidebar.classList.contains('open')) {
+                closeSidebarMenu();
+            }
+        }
+        // FINE MODIFICA
+
         function viewFolder(folderId) {
             const folder = folders[folderId];
             if (!folder) return;
@@ -1193,11 +1222,11 @@
             }
         }
 
-        showAllBtn.addEventListener('click', () => {
-            currentFolderViewId = null;
-            displayMonsters(allMonsters);
-            folderInfoBar.classList.add('hidden');
-        });
+        // MODIFICA: Aggiornato il listener per usare la nuova funzione
+        showAllBtn.addEventListener('click', showAllMonstersView);
+
+        // MODIFICA: Aggiunto listener per il nuovo pulsante di chiusura
+        closeFolderViewBtn.addEventListener('click', showAllMonstersView);
 
         createFolderBtn.addEventListener('click', createFolder);
         newFolderInput.addEventListener('keypress', (e) => {
@@ -1432,4 +1461,3 @@
     </script>
 </body>
 </html>
-
